@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "aml_interface"
+version = "1.0.0"
+description = "AML-Interface is developed with the purpose of simplifying the use of AzureML, adding an abstraction layer over repetitive AzureML functions."
+authors = [
+    "Sebastian Davrieux <s.davrieux@amsterdam.nl>",
+    "Diana Epureanu <d.epureanu@amsterdam.nl>",
+    "Andrea Lombardo <a.lombardo@amsterdam.nl>"
+]
+
+[tool.poetry.dependencies]
+python = "~3.8"
+azure-ai-ml = {version = "^1.2.0", source = "PyPI"}
+
+[tool.poetry.dev-dependencies]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
