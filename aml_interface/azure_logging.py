@@ -1,32 +1,70 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 
-class AzureLogger:
+class AzureLoggingConfigurer:
     """
-    Sets up logging according to the configuration.
+    Configures logging settings according to the provided configuration yaml file.
 
-    Parameters
+    Attributes
     ----------
-    logging_cfg: logging configuration, for example:
-        logging:
-          loglevel_own: INFO  # override loglevel for packages defined in `own_packages`
-          own_packages: ["__main__", "custom_package_1", "custom_package_2"]
-          basic_config:
-            # log config as arguments to `logging.basicConfig`
-            level: INFO
-            format: "%(asctime)s|||%(levelname)-8s|%(name)s|%(message)s"
-            datefmt: "%Y-%m-%d %H:%M:%S"
-          ai_instrumentation_key: "APPLICATION_INSIGHTS_CONNECTION_STRING"
+    logging_cfg : dict
+        Logging configuration dictionary containing the following keys:
+        - loglevel_own: Logging level to set for the specified packages.
+        - own_packages: List of packages to configure logging for.
+        - basic_config: Dictionary containing basic logging configuration settings:
+            - level: Logging level (e.g., INFO, DEBUG).
+            - format: Format string for log messages.
+            - datefmt: Date format for log messages.
+        - ai_instrumentation_key: Azure Application Insights instrumentation key.
 
-    pkg_name: extra package to set up logging for
 
-    Returns
-    -------
+    packages : list of str
+        List of packages to configure logging for, including the optional additional package.
+
+    instrumentation_key : str
+        Azure Application Insights instrumentation key.
+
+    azure_log_handler : AzureLogHandler
+        Handler for sending logs to Azure Application Insights.
+
+    console_handler : logging.StreamHandler
+        Handler for outputting logs to the console.
+
+    Example usage:
+    config = {
+        "logging": {
+            "loglevel_own": "INFO",
+            "own_packages": ["a", "b"],
+            "basic_config": {
+                "level": "WARNING",
+                "format": "%(asctime)s|||%(levelname)-8s|%(name)s|%(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S"
+            },
+            "ai_instrumentation_key": "INSERT_KEY_HERE"
+        }
+    }
+
+    azureLoggingConfigurer = AzureLoggingConfigurer(config["logging"])
+    azureLoggingConfigurer.setup_oor_logging()
+    logger = logging.getLogger("a")
+    logger.info("Message with logger a")
     """
+
     def __init__(self, logging_cfg: Dict[str, Any], pkg_name: str = None):
+        """
+        Initializes the AzureLoggingConfigurer instance with the provided logging configuration.
+
+        Parameters
+        ----------
+        logging_cfg : dict
+            Logging configuration settings.
+
+        pkg_name : str, optional
+            Additional package name to configure logging for.
+        """
         self.logging_cfg = logging_cfg
         self.packages = self.logging_cfg["own_packages"] + ([pkg_name] if pkg_name else [])
 
@@ -37,25 +75,39 @@ class AzureLogger:
         self.console_handler = logging.StreamHandler()
         self.console_handler.setLevel(logging_cfg["loglevel_own"])
 
-    def setup_baas_logging(self):
+    def _setup_logging(self, additional_handlers: List[logging.Handler] = None):
+        """
+        Sets up basic logging configurations for the specified packages.
+
+        This method sets up logging configurations for the specified packages, including the addition of
+        AzureLogHandler for sending logs to Azure Application Insights, and optional additional handlers.
+
+        Parameters
+        ----------
+        additional_handlers : list of logging.Handler, optional
+                              Additional logging handlers to be added to the logger.
+        """
+        additional_handlers = additional_handlers or []
         for pkg in self.packages:
             pkg_logger = logging.getLogger(pkg)
-            logger.setLevel(logging_cfg["loglevel_own"])
+            pkg_logger.setLevel(self.logging_cfg["loglevel_own"])
 
-            if pkg_logger.handlers:
-                print(f"Handler for {pkg} has been set already.")
+            if len(pkg_logger.handlers) == len(additional_handlers) + 1:
+                print(f"Handlers for {pkg} have been set already.")
             else:
-                pkg_logger.addHandler(azure_log_handler)
+                pkg_logger.addHandler(self.azure_log_handler)
+                for handler in additional_handlers:
+                    pkg_logger.addHandler(handler)
                 print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
+
+    def setup_baas_logging(self):
+        """
+        Set up logging configurations for Blurring-as-a-Service (BaaS) components.
+        """
+        self._setup_logging()
 
     def setup_oor_logging(self):
-        for pkg in self.packages:
-            pkg_logger = logging.getLogger(pkg)
-            logger.setLevel(logging_cfg["loglevel_own"])
-
-            if pkg_logger.handlers:
-                print(f"Handler for {pkg} has been set already.")
-            else:
-                pkg_logger.addHandler(azure_log_handler)
-                pkg_logger.addHandler(console_handler)
-                print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
+        """
+        Set up logging configurations for Objectherkenning-Openbare-Ruimte (OOR) components.
+        """
+        self._setup_logging([self.console_handler])
