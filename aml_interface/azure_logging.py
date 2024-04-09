@@ -4,7 +4,7 @@ from typing import Any, Dict
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 
 
-def setup_azure_logging(logging_cfg: Dict[str, Any], pkg_name: str = None):
+class AzureLogger:
     """
     Sets up logging according to the configuration.
 
@@ -25,19 +25,37 @@ def setup_azure_logging(logging_cfg: Dict[str, Any], pkg_name: str = None):
 
     Returns
     -------
-
     """
-    logging.basicConfig(**logging_cfg["basic_config"])
-    instrumentation_key = logging_cfg["ai_instrumentation_key"]
-    azure_log_handler = AzureLogHandler(connection_string=instrumentation_key)
-    azure_log_handler.setLevel(logging_cfg["loglevel_own"])
+    def __init__(self, logging_cfg: Dict[str, Any], pkg_name: str = None):
+        self.logging_cfg = logging_cfg
+        self.packages = self.logging_cfg["own_packages"] + ([pkg_name] if pkg_name else [])
 
-    packages = logging_cfg["own_packages"] + ([pkg_name] if pkg_name else [])
+        self.instrumentation_key = self.logging_cfg["ai_instrumentation_key"]
+        self.azure_log_handler = AzureLogHandler(connection_string=self.instrumentation_key)
+        self.azure_log_handler.setLevel(logging_cfg["loglevel_own"])
 
-    for pkg in packages:
-        pkg_logger = logging.getLogger(pkg)
-        if pkg_logger.handlers:
-            print(f"Handler for {pkg} has been set already.")
-        else:
-            pkg_logger.addHandler(azure_log_handler)
-            print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
+        self.console_handler = logging.StreamHandler()
+        self.console_handler.setLevel(logging_cfg["loglevel_own"])
+
+    def setup_baas_logging(self):
+        for pkg in self.packages:
+            pkg_logger = logging.getLogger(pkg)
+            logger.setLevel(logging_cfg["loglevel_own"])
+
+            if pkg_logger.handlers:
+                print(f"Handler for {pkg} has been set already.")
+            else:
+                pkg_logger.addHandler(azure_log_handler)
+                print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
+
+    def setup_oor_logging(self):
+        for pkg in self.packages:
+            pkg_logger = logging.getLogger(pkg)
+            logger.setLevel(logging_cfg["loglevel_own"])
+
+            if pkg_logger.handlers:
+                print(f"Handler for {pkg} has been set already.")
+            else:
+                pkg_logger.addHandler(azure_log_handler)
+                pkg_logger.addHandler(console_handler)
+                print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
