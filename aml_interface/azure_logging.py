@@ -72,7 +72,7 @@ class AzureLoggingConfigurer:
         self.azure_log_handler = AzureLogHandler(connection_string=self.instrumentation_key)
         self.azure_log_handler.setLevel(logging_cfg["loglevel_own"])
 
-    def _setup_logging(self, additional_handlers: List[logging.Handler] = None):
+    def _setup_logging(self, additional_handlers: List[logging.Handler] = []):
         """
         Sets up basic logging configurations for the specified packages.
 
@@ -84,14 +84,11 @@ class AzureLoggingConfigurer:
         additional_handlers : list of logging.Handler, optional
                               Additional logging handlers to be added to the logger.
         """
-        additional_handlers = additional_handlers or []
         for pkg in self.packages:
             pkg_logger = logging.getLogger(pkg)
             pkg_logger.setLevel(self.logging_cfg["loglevel_own"])
 
-            if len(pkg_logger.handlers) == len(additional_handlers) + 1:
-                print(f"Handlers for {pkg} have been set already.")
-            else:
+            if len(pkg_logger.handlers) != len(additional_handlers) + 1:
                 pkg_logger.addHandler(self.azure_log_handler)
                 for handler in additional_handlers:
                     pkg_logger.addHandler(handler)
