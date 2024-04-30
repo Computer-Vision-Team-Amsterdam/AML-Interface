@@ -72,9 +72,6 @@ class AzureLoggingConfigurer:
         self.azure_log_handler = AzureLogHandler(connection_string=self.instrumentation_key)
         self.azure_log_handler.setLevel(logging_cfg["loglevel_own"])
 
-        self.console_handler = logging.StreamHandler()
-        self.console_handler.setLevel(logging_cfg["loglevel_own"])
-
     def _setup_logging(self, additional_handlers: List[logging.Handler] = None):
         """
         Sets up basic logging configurations for the specified packages.
@@ -110,4 +107,6 @@ class AzureLoggingConfigurer:
         """
         Set up logging configurations for Objectherkenning-Openbare-Ruimte (OOR) components.
         """
-        self._setup_logging([self.console_handler])
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(self.logging_cfg["loglevel_own"])
+        self._setup_logging(additional_handlers=[console_handler])
