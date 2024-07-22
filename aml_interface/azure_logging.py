@@ -66,6 +66,7 @@ class AzureLoggingConfigurer:
             Additional package name to configure logging for.
         """
         self.logging_cfg = logging_cfg
+        logging.basicConfig(**self.logging_cfg["basic_config"])
         self.packages = self.logging_cfg["own_packages"] + ([pkg_name] if pkg_name else [])
 
         self.instrumentation_key = self.logging_cfg["ai_instrumentation_key"]
