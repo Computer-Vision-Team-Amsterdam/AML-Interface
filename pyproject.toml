@@ -9,7 +9,7 @@ authors = [
 ]
 
 [tool.poetry.dependencies]
-python = "~3.8"
+python = ">=3.8"
 azure-ai-ml = {version = "^1.2.0", source = "PyPI"}
 
 [tool.poetry.dev-dependencies]
