@@ -75,6 +75,7 @@ class AMLInterface:
         build_context_path: str,
         dockerfile_path: str,
         build_cluster: str = "defaultBuildClusterCvt",
+        build_context_files: list[str] = ["poetry.lock", "pyproject.toml"],
     ) -> Environment:
         """Creates an AML environment based on the provided dockerfile image.
         Installs the pip packages present in the env where the code is run.
@@ -89,6 +90,8 @@ class AMLInterface:
             Dockerfile path inside the build context.
         build_cluster: str
             Cluster to be used when building environments within Analyse Services.
+        build_context_files: list[str] = ["poetry.lock", "pyproject.toml"]
+            Local files to be added to the build context
 
         Returns
         -------
@@ -98,8 +101,9 @@ class AMLInterface:
         ws = self.ml_client.workspaces.get(name=self.ml_client.workspace_name)
         ws.image_build_compute = build_cluster
 
-        shutil.copyfile("poetry.lock", f"{build_context_path}/poetry.lock")
-        shutil.copyfile("pyproject.toml", f"{build_context_path}/pyproject.toml")
+        for file in build_context_files:
+            shutil.copyfile(file, f"{build_context_path}/{file}")
+
         env = Environment(
             name=env_name,
             build=BuildContext(
@@ -108,8 +112,9 @@ class AMLInterface:
             ),
         )
         self.ml_client.environments.create_or_update(env)
-        delete_file(f"{build_context_path}/poetry.lock")
-        delete_file(f"{build_context_path}/pyproject.toml")
+
+        for file in build_context_files:
+            delete_file(f"{build_context_path}/{file}")
 
         return env
 
