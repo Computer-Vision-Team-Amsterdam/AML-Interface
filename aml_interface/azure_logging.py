@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, List
 
-from opencensus.ext.azure.log_exporter import AzureLogHandler
+from azure.monitor.opentelemetry import configure_azure_monitor
 
 
 class AzureLoggingConfigurer:
@@ -26,9 +26,6 @@ class AzureLoggingConfigurer:
 
     instrumentation_key : str
         Azure Application Insights instrumentation key.
-
-    azure_log_handler : AzureLogHandler
-        Handler for sending logs to Azure Application Insights.
 
     console_handler : logging.StreamHandler
         Handler for outputting logs to the console.
@@ -67,11 +64,14 @@ class AzureLoggingConfigurer:
         """
         self.logging_cfg = logging_cfg
         logging.basicConfig(**self.logging_cfg["basic_config"])
-        self.packages = self.logging_cfg["own_packages"] + ([pkg_name] if pkg_name else [])
+        self.packages = self.logging_cfg["own_packages"] + (
+            [pkg_name] if pkg_name else []
+        )
 
         self.instrumentation_key = self.logging_cfg["ai_instrumentation_key"]
-        self.azure_log_handler = AzureLogHandler(connection_string=self.instrumentation_key)
-        self.azure_log_handler.setLevel(logging_cfg["loglevel_own"])
+        configure_azure_monitor(
+            connection_string=self.instrumentation_key,
+        )
 
     def _setup_logging(self, additional_handlers: List[logging.Handler] = []):
         """
@@ -90,7 +90,6 @@ class AzureLoggingConfigurer:
             pkg_logger.setLevel(self.logging_cfg["loglevel_own"])
 
             if len(pkg_logger.handlers) != len(additional_handlers) + 1:
-                pkg_logger.addHandler(self.azure_log_handler)
                 for handler in additional_handlers:
                     pkg_logger.addHandler(handler)
                 print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
