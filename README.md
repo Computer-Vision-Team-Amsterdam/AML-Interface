@@ -33,10 +33,10 @@ uv venv --python 3.11
 source .venv/bin/activate 
 
 # Install dependencies
-uv pip install -r pyproject.toml --extra dev [--extra model_export]
+uv pip install -r pyproject.toml
 
 # Add package
-uv add <pacakage_name>
+uv add <package_name>
 ```
 
 ### 4. Install pre-commit hooks
