@@ -92,7 +92,6 @@ class AzureLoggingConfigurer:
             if len(pkg_logger.handlers) != len(additional_handlers) + 1:
                 for handler in additional_handlers:
                     pkg_logger.addHandler(handler)
-                print(f"pkg {pkg} has the following handlers: {pkg_logger.handlers}")
 
     def setup_baas_logging(self):
         """
