@@ -194,7 +194,7 @@ class AMLInterface:
         )
 
     def submit_pipeline_experiment(
-        self, pipeline_function, experiment_name, default_compute
+        self, pipeline_function, experiment_name, default_compute, show_log: bool = True
     ):
         """
         Submits a pipeline experiment to AzureML.
@@ -216,7 +216,8 @@ class AMLInterface:
         pipeline_job = self.submit_pipeline_job(
             pipeline_job=pipeline_job, experiment_name=experiment_name
         )
-        self.wait_until_job_completes(pipeline_job.name)
+        if show_log:
+            self.wait_until_job_completes(pipeline_job.name)
 
     def wait_until_job_completes(self, job_name):
         self.ml_client.jobs.stream(job_name)
