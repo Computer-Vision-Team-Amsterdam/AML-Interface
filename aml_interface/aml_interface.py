@@ -75,12 +75,12 @@ class AMLInterface:
             AML environment version, either a positive integer or 'latest'
 
         Returns
-        A string, either 'env_name:env_version' or 'env_name@latest'.
+        A string, either 'azureml:env_name:env_version' or 'azureml:env_name@latest'.
         """
         if isinstance(env_version, int) and env_version >= 1:
-            return f"{env_name}:{env_version}"
+            return f"azureml:{env_name}:{env_version}"
         elif env_version == "latest":
-            return f"{env_name}@latest"
+            return f"azureml:{env_name}@latest"
         else:
             raise ValueError(
                 f"Invalid env_version, expected positive integer or 'latest', got {env_version}"
