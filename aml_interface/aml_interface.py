@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+from typing import Union
 
 from azure.ai.ml import MLClient
 from azure.ai.ml.entities import BuildContext, Environment, ManagedIdentityConfiguration
@@ -58,6 +59,32 @@ class AMLInterface:
             logger.info("Using InteractiveBrowserCredential login...")
             credential = InteractiveBrowserCredential()
         return credential
+
+    @staticmethod
+    def get_aml_environment_string(env_name: str, env_version: Union[int, str]) -> str:
+        """
+        Compose an AML environment string for use in a command_component
+        definition. The method allows the environment version to be either an
+        integer version or 'latest'.
+
+        Parameters
+        ----------
+        env_name: str
+            AML environment name
+        env_version: Union[int, str]
+            AML environment version, either a positive integer or 'latest'
+
+        Returns
+        A string, either 'azureml:env_name:env_version' or 'azureml:env_name@latest'.
+        """
+        if isinstance(env_version, int) and env_version >= 1:
+            return f"azureml:{env_name}:{env_version}"
+        elif env_version == "latest":
+            return f"azureml:{env_name}@latest"
+        else:
+            raise ValueError(
+                f"Invalid env_version, expected positive integer or 'latest', got {env_version}"
+            )
 
     def get_datastore_full_path(self, datastore_name):
         full_path = self.azureml_path.format(
